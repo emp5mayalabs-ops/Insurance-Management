@@ -78,88 +78,29 @@ export async function checkBackendStatus() {
 
 /**
  * Endpoint 2: POST /api/admin/login/ - Admin login
- *
- * IMPORTANT: pass credentials as an OBJECT:
- *     adminLogin({ username: "maya", password: "secret" })
- *
- * Do NOT call it like this (common bug):
- *     adminLogin("maya")                    // ❌ sends the string "maya"
- *     adminLogin("maya", "secret")          // ❌ password ignored
- *     adminLogin({ user: ..., pass: ... })  // ❌ wrong field names
  */
 export async function adminLogin(credentials) {
-  // ---- Defensive guard: enforce correct call signature ----
-  if (
-    credentials === null ||
-    typeof credentials !== 'object' ||
-    Array.isArray(credentials)
-  ) {
-    throw new Error(
-      'adminLogin() expects an object: adminLogin({ username, password }). ' +
-      'Received: ' + JSON.stringify(credentials)
-    );
-  }
-
-  const { username, password } = credentials;
-
-  if (
-    typeof username !== 'string' ||
-    typeof password !== 'string' ||
-    username.trim() === '' ||
-    password === ''
-  ) {
-    throw new Error(
-      'adminLogin() requires non-empty "username" and "password" strings.'
-    );
-  }
-
-  // ---- Build request ----
   const baseUrl = getBaseUrl();
-
   const response = await fetch(`${baseUrl}/api/admin/login/`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
       'Accept': 'application/json'
     },
-    // Send ONLY the fields the backend expects. This way, no extra
-    // keys (e.g. rememberMe, csrfmiddlewaretoken) leak into the body.
-    body: JSON.stringify({
-      username: username.trim(),
-      password: password
-    })
+    body: JSON.stringify(credentials)
   });
 
-  // ---- Handle response ----
   if (response.ok) {
     const data = await response.json();
-
-    // Backend returns: { access, refresh, admin: {...} }
-    const token =
-      data.access ||
-      data.token ||
-      data.key ||
-      data.jwt;
-
+    const token = data.token || data.access || data.key || data.jwt;
     if (token) {
       localStorage.setItem('insure_auth_token', token);
     }
-
-    if (data.refresh) {
-      localStorage.setItem('insure_refresh_token', data.refresh);
-    }
-
-    if (data.admin) {
-      localStorage.setItem('insure_admin', JSON.stringify(data.admin));
-    }
-
     return { success: true, data };
   }
 
   const message = await extractErrorMessage(response);
-  throw new Error(
-    message || 'Login failed. Please check your administrator credentials.'
-  );
+  throw new Error(message || 'Login failed. Please check your administrator credentials.');
 }
 
 /**
@@ -175,9 +116,7 @@ export async function getAgents() {
   if (response.ok) {
     const data = await response.json();
     // Handle either direct array or paginated response: { count, results: [...] }
-    const agentsList = Array.isArray(data)
-      ? data
-      : (data.results || data.data || data.agents || []);
+    const agentsList = Array.isArray(data) ? data : (data.results || data.data || []);
     return { success: true, data: agentsList };
   }
 
