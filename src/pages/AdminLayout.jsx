@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import DashboardPage from './DashboardPage';
@@ -30,12 +30,12 @@ export default function AdminLayout() {
     }
   }, [isAuthenticated, navigate]);
 
-  const showToast = (message, type = 'success') => {
+  const showToast = useCallback((message, type = 'success') => {
     setToast({ message, type });
     setTimeout(() => {
       setToast((prev) => (prev.message === message ? { message: '', type: 'success' } : prev));
     }, 4500);
-  };
+  }, []);
 
   const refreshCounts = async () => {
     try {

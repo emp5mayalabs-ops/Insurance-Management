@@ -39,7 +39,7 @@ export default function Navbar({ onNavigate, currentTab }) {
             <Shield className="brand-icon" size={24} />
           </div>
           <div className="brand-text">
-            <span className="brand-name">InsureSecure</span>
+            <span className="brand-name">MASTERS COMPANION</span>
             <span className="brand-portal">Admin Portal</span>
           </div>
         </div>

@@ -79,16 +79,8 @@ export async function checkBackendStatus() {
 /**
  * Endpoint 2: POST /api/admin/login/ - Admin login
  */
-export async function adminLogin(credentials, password) {
-  let bodyPayload;
-  if (typeof credentials === 'string') {
-    bodyPayload = { username: credentials, password: password || '' };
-  } else if (credentials && typeof credentials === 'object') {
-    bodyPayload = credentials;
-  } else {
-    bodyPayload = { username: String(credentials || ''), password: String(password || '') };
-  }
-
+export async function adminLogin(credentials) {
+  console.log('adminLogin received:', typeof credentials, credentials);
   const baseUrl = getBaseUrl();
   const response = await fetch(`${baseUrl}/api/admin/login/`, {
     method: 'POST',
@@ -96,7 +88,7 @@ export async function adminLogin(credentials, password) {
       'Content-Type': 'application/json',
       'Accept': 'application/json'
     },
-    body: JSON.stringify(bodyPayload)
+    body: JSON.stringify(credentials)
   });
 
   if (response.ok) {
@@ -125,7 +117,7 @@ export async function getAgents() {
   if (response.ok) {
     const data = await response.json();
     // Handle either direct array or paginated response: { count, results: [...] }
-    const agentsList = Array.isArray(data) ? data : (data.results || data.data || []);
+    const agentsList = Array.isArray(data) ? data : (data.agents || data.results || data.data || []);
     return { success: true, data: agentsList };
   }
 
@@ -145,7 +137,8 @@ export async function getAgentById(id) {
 
   if (response.ok) {
     const data = await response.json();
-    return { success: true, data };
+    const agentData = data.agent || data.data || data;
+    return { success: true, agentData };
   }
 
   const message = await extractErrorMessage(response);

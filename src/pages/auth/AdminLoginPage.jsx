@@ -25,14 +25,17 @@ export default function AdminLoginPage() {
     setLoading(true);
     setError('');
     try {
-      await login({ username: form.username.trim(), password: form.password });
+      console.log('Submitting credentials:', { username: form.username.trim(), password: form.password });
+      const res = await adminLogin({ username: form.username.trim(), password: form.password });
+      const token = res.data?.token || res.data?.access || res.data?.key;
+      const user = res.data?.user || { username: form.username };
+      login(token, user);
       navigate('/admin/dashboard', { replace: true });
     } catch (err) {
       const msg =
         err?.response?.data?.non_field_errors?.[0] ||
         err?.response?.data?.detail ||
         err?.response?.data?.message ||
-        err?.message ||
         'Invalid credentials. Please try again.';
       setError(msg);
     } finally {

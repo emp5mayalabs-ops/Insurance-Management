@@ -101,7 +101,7 @@ export default function LoginPage() {
                   id="username"
                   type="text"
                   className="form-input with-prefix"
-                  placeholder="admin or admin@insuresecure.com"
+                  placeholder="admin or admin@masterscompanion.com"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
                   disabled={loading}
@@ -167,7 +167,7 @@ export default function LoginPage() {
           </form>
 
           <div className="login-disclaimer">
-            InsureSecure Corp. Licensed under NAIC Insurance Regulatory Compliance Standards.
+            Masters Companion Corp. Licensed under NAIC Insurance Regulatory Compliance Standards.
           </div>
         </div>
       </div>
