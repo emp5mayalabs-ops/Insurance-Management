@@ -27,21 +27,43 @@ export function AuthProvider({ children }) {
     }
   }, [user]);
 
-  const login = async (credentials) => {
+  const setAuthSession = (newToken, newUser) => {
+    setUser(newUser);
+    setToken(newToken);
+    if (newToken) {
+      localStorage.setItem('insure_auth_token', newToken);
+    } else {
+      localStorage.removeItem('insure_auth_token');
+    }
+    if (newUser) {
+      localStorage.setItem('insure_auth_user', JSON.stringify(newUser));
+    } else {
+      localStorage.removeItem('insure_auth_user');
+    }
+  };
+
+  const login = async (credentials, param2) => {
+    // If called directly as setAuthSession(token, userObject)
+    if (typeof credentials === 'string' && typeof param2 === 'object' && param2 !== null) {
+      setAuthSession(credentials, param2);
+      return { success: true };
+    }
+
     setLoading(true);
     setAuthError(null);
     try {
-      const res = await apiAdminLogin(credentials);
+      const res = await apiAdminLogin(credentials, param2);
+      const token = res.data?.token || res.data?.access || res.data?.key || res.data?.jwt || 'authenticated';
       const returnedUser = res.data?.user || (typeof res.data === 'object' && res.data?.username ? res.data : null);
+      const username = typeof credentials === 'object' ? credentials?.username : credentials;
       const userData = returnedUser || {
-        username: credentials.username || 'admin',
-        name: credentials.username || 'Administrator',
+        username: username || 'admin',
+        name: username || 'Administrator',
         role: 'Administrator',
-        email: credentials.email || `${credentials.username || 'admin'}@insurance.com`
+        email: `${username || 'admin'}@insurance.com`
       };
-      setUser(userData);
-      setToken(res.data?.token || res.data?.access || res.data?.key || 'authenticated');
-      return { success: true };
+      setAuthSession(token, userData);
+      return { success: true, data: res.data };
     } catch (err) {
       setAuthError(err.message || 'Login failed');
       throw err;
@@ -66,6 +88,7 @@ export function AuthProvider({ children }) {
         loading,
         authError,
         login,
+        setAuthSession,
         logout
       }}
     >
