@@ -79,7 +79,16 @@ export async function checkBackendStatus() {
 /**
  * Endpoint 2: POST /api/admin/login/ - Admin login
  */
-export async function adminLogin(credentials) {
+export async function adminLogin(credentials, password) {
+  let bodyPayload;
+  if (typeof credentials === 'string') {
+    bodyPayload = { username: credentials, password: password || '' };
+  } else if (credentials && typeof credentials === 'object') {
+    bodyPayload = credentials;
+  } else {
+    bodyPayload = { username: String(credentials || ''), password: String(password || '') };
+  }
+
   const baseUrl = getBaseUrl();
   const response = await fetch(`${baseUrl}/api/admin/login/`, {
     method: 'POST',
@@ -87,7 +96,7 @@ export async function adminLogin(credentials) {
       'Content-Type': 'application/json',
       'Accept': 'application/json'
     },
-    body: JSON.stringify(credentials)
+    body: JSON.stringify(bodyPayload)
   });
 
   if (response.ok) {
