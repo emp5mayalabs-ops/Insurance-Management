@@ -17,6 +17,9 @@ import CustomerLoginPage from './pages/auth/CustomerLoginPage';
 // Admin portal
 import AdminLayout from './pages/AdminLayout';
 
+// Agent portal
+import AgentLayout from './pages/agent/AgentLayout';
+
 import './index.css';
 
 export default function App() {
@@ -39,6 +42,9 @@ export default function App() {
 
           {/* ── Admin portal (protected inside AdminLayout) ── */}
           <Route path="/admin/*" element={<AdminLayout />} />
+
+          {/* ── Agent portal (protected inside AgentLayout) ── */}
+          <Route path="/agent/*" element={<AgentLayout />} />
 
           {/* ── Catch-all ── */}
           <Route path="*" element={<Navigate to="/" replace />} />

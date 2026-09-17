@@ -202,3 +202,53 @@ export async function deleteAgent(id) {
   const message = await extractErrorMessage(response);
   throw new Error(message || `Failed to delete agent (HTTP ${response.status})`);
 }
+
+/**
+ * Agent Endpoint: POST /api/agent/login/ - Agent login
+ */
+export async function agentLogin(credentials) {
+  const baseUrl = getBaseUrl();
+  const payload = typeof credentials === 'object' ? credentials : { username: credentials };
+  const response = await fetch(`${baseUrl}/api/agent/login/`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json'
+    },
+    body: JSON.stringify(payload)
+  });
+
+  if (response.ok) {
+    const data = await response.json();
+    const token = data.access || data.token;
+    if (token) {
+      localStorage.setItem('insure_auth_token', token);
+    }
+    if (data.refresh) {
+      localStorage.setItem('insure_agent_refresh_token', data.refresh);
+    }
+    return { success: true, data };
+  }
+
+  const message = await extractErrorMessage(response);
+  throw new Error(message || 'Agent login failed. Please check your credentials.');
+}
+
+/**
+ * Agent Endpoint: GET /api/agent/me/ - Get current agent profile
+ */
+export async function getAgentMe() {
+  const baseUrl = getBaseUrl();
+  const response = await fetch(`${baseUrl}/api/agent/me/`, {
+    method: 'GET',
+    headers: getAuthHeaders()
+  });
+
+  if (response.ok) {
+    const data = await response.json();
+    return data;
+  }
+
+  const message = await extractErrorMessage(response);
+  throw new Error(message || `Failed to fetch agent profile (HTTP ${response.status})`);
+}
