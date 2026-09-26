@@ -186,10 +186,21 @@ export default function AgentModal({ isOpen, onClose, onSave, agent = null, isEd
             <div style={styles.group}>
               <label style={styles.label}>SELECT COMPANY</label>
               <div style={styles.radioGroup}>
-                {['ICICI LOMBARD', 'STAR HEALTH', 'NIVA BUPA'].map(company => (
-                  <label key={company} style={styles.radioLabel}>
-                    <input type="radio" name="insurance_company" value={company} checked={formData.insurance_company === company} onChange={handleChange} style={{ accentColor: '#3B2F2F' }} />
-                    {company}
+                {[
+                  { value: 'ICICI', label: 'ICICI Lombard' },
+                  { value: 'STAR', label: 'Star Health' },
+                  { value: 'NIVA_BUPA', label: 'Niva Bupa' }
+                ].map(company => (
+                  <label key={company.value} style={styles.radioLabel}>
+                    <input 
+                      type="radio" 
+                      name="insurance_company" 
+                      value={company.value} 
+                      checked={formData.insurance_company === company.value} 
+                      onChange={handleChange} 
+                      style={{ accentColor: '#3B2F2F' }} 
+                    />
+                    {company.label}
                   </label>
                 ))}
               </div>
