@@ -2,7 +2,8 @@ import { useState, useEffect, useCallback } from 'react';
 import { 
   User, Mail, Phone, Hash, ShieldCheck, ShieldAlert, 
   Calendar, CheckCircle, XCircle, RefreshCw, Copy, 
-  Check, Award, FileText, TrendingUp, Shield
+  Check, Award, FileText, TrendingUp, Shield,
+  Building, CreditCard, MapPin
 } from 'lucide-react';
 import { getAgentMe } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
@@ -471,6 +472,103 @@ export default function AgentProfilePage() {
                 >
                   {displayAgent.phone || 'N/A'}
                 </a>
+              </div>
+            </div>
+
+            {/* Aadhaar Number */}
+            <div
+              style={{
+                backgroundColor: '#f8fafc',
+                border: '1px solid #e2e8f0',
+                borderRadius: '10px',
+                padding: '1rem',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <span style={{ fontSize: '0.82rem', fontWeight: 600, color: '#64748b', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                  <CreditCard size={14} /> Aadhaar Number
+                </span>
+                <button
+                  type="button"
+                  onClick={() => copyToClipboard(displayAgent.aadhaar_number, 'aadhaar_number')}
+                  style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: '#64748b' }}
+                  title="Copy Aadhaar"
+                >
+                  {copiedKey === 'aadhaar_number' ? <Check size={14} className="text-emerald-600" /> : <Copy size={14} />}
+                </button>
+              </div>
+              <div style={{ marginTop: '0.35rem', fontSize: '1.05rem', fontWeight: 700, color: '#0f172a' }}>
+                {displayAgent.aadhaar_number || 'XXXXXXXXXXXX'}
+              </div>
+            </div>
+
+            {/* PAN Number */}
+            <div
+              style={{
+                backgroundColor: '#f8fafc',
+                border: '1px solid #e2e8f0',
+                borderRadius: '10px',
+                padding: '1rem',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <span style={{ fontSize: '0.82rem', fontWeight: 600, color: '#64748b', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                  <FileText size={14} /> PAN Number
+                </span>
+                <button
+                  type="button"
+                  onClick={() => copyToClipboard(displayAgent.pan_number, 'pan_number')}
+                  style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: '#64748b' }}
+                  title="Copy PAN"
+                >
+                  {copiedKey === 'pan_number' ? <Check size={14} className="text-emerald-600" /> : <Copy size={14} />}
+                </button>
+              </div>
+              <div style={{ marginTop: '0.35rem', fontSize: '1.05rem', fontWeight: 700, color: '#0f172a' }}>
+                {displayAgent.pan_number || 'XXXXXXXXXX'}
+              </div>
+            </div>
+
+            {/* Insurance Company */}
+            <div
+              style={{
+                backgroundColor: '#f8fafc',
+                border: '1px solid #e2e8f0',
+                borderRadius: '10px',
+                padding: '1rem',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <span style={{ fontSize: '0.82rem', fontWeight: 600, color: '#64748b', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                  <Building size={14} /> Insurance Company
+                </span>
+              </div>
+              <div style={{ marginTop: '0.35rem', fontSize: '1.05rem', fontWeight: 700, color: '#0f172a' }}>
+                {displayAgent.insurance_company_display || displayAgent.insurance_company || 'N/A'}
+              </div>
+            </div>
+
+            {/* Full Address */}
+            <div
+              style={{
+                backgroundColor: '#f8fafc',
+                border: '1px solid #e2e8f0',
+                borderRadius: '10px',
+                padding: '1rem',
+                gridColumn: '1 / -1'
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <span style={{ fontSize: '0.82rem', fontWeight: 600, color: '#64748b', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                  <MapPin size={14} /> Full Address
+                </span>
+              </div>
+              <div style={{ marginTop: '0.35rem', fontSize: '0.95rem', color: '#334155', lineHeight: '1.5' }}>
+                {displayAgent.address_line1 && <div>{displayAgent.address_line1}</div>}
+                {displayAgent.address_line2 && <div>{displayAgent.address_line2}</div>}
+                <div>
+                  {[displayAgent.city, displayAgent.state, displayAgent.pincode].filter(Boolean).join(', ') || 'N/A'}
+                </div>
               </div>
             </div>
 

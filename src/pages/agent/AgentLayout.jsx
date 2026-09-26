@@ -7,6 +7,8 @@ import {
 import { useAuth } from '../../context/AuthContext';
 import { checkBackendStatus, getBaseUrl } from '../../services/api';
 import AgentProfilePage from './AgentProfilePage';
+import CustomersPage from './CustomersPage';
+import CustomerViewPage from './CustomerViewPage';
 
 export default function AgentLayout() {
   const { user, isAuthenticated, logout } = useAuth();
@@ -226,6 +228,17 @@ export default function AgentLayout() {
 
             <button
               type="button"
+              className={`sidebar-link ${currentTab === 'customers' ? 'active' : ''}`}
+              onClick={() => handleNavigate('customers')}
+            >
+              <span className="sidebar-link-icon">
+                <User size={19} />
+              </span>
+              <span className="sidebar-link-label">Customers</span>
+            </button>
+
+            <button
+              type="button"
               className={`sidebar-link ${currentTab === 'policies' ? 'active' : ''}`}
               onClick={() => handleNavigate('policies')}
             >
@@ -295,6 +308,8 @@ export default function AgentLayout() {
         <main className="app-content-area">
           <Routes>
             <Route path="profile" element={<AgentProfilePage />} />
+            <Route path="customers" element={<CustomersPage />} />
+            <Route path="customers/:id" element={<CustomerViewPage />} />
             <Route
               path="policies"
               element={
