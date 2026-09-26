@@ -252,3 +252,101 @@ export async function getAgentMe() {
   const message = await extractErrorMessage(response);
   throw new Error(message || `Failed to fetch agent profile (HTTP ${response.status})`);
 }
+
+/**
+ * Customer Endpoints
+ */
+export async function getCustomers() {
+  const baseUrl = getBaseUrl();
+  const response = await fetch(`${baseUrl}/api/customers/`, {
+    method: 'GET',
+    headers: getAuthHeaders()
+  });
+  if (response.ok) {
+    const data = await response.json();
+    return { success: true, data: Array.isArray(data) ? data : (data.customers || data.results || data.data || []) };
+  }
+  throw new Error(await extractErrorMessage(response) || `Failed to fetch customers`);
+}
+
+export async function getCustomerById(id) {
+  const baseUrl = getBaseUrl();
+  const response = await fetch(`${baseUrl}/api/customers/${id}/`, {
+    method: 'GET',
+    headers: getAuthHeaders()
+  });
+  if (response.ok) {
+    const data = await response.json();
+    return { success: true, data: data.customer || data.data || data };
+  }
+  throw new Error(await extractErrorMessage(response) || `Failed to fetch customer details`);
+}
+
+export async function createCustomer(data) {
+  const baseUrl = getBaseUrl();
+  const response = await fetch(`${baseUrl}/api/customers/create/`, {
+    method: 'POST',
+    headers: getAuthHeaders(),
+    body: JSON.stringify(data)
+  });
+  if (response.ok || response.status === 201) {
+    const resData = await response.json().catch(() => ({ success: true }));
+    return { success: true, data: resData };
+  }
+  throw new Error(await extractErrorMessage(response) || `Failed to create customer`);
+}
+
+export async function updateCustomer(id, data) {
+  const baseUrl = getBaseUrl();
+  const response = await fetch(`${baseUrl}/api/customers/${id}/update/`, {
+    method: 'PUT',
+    headers: getAuthHeaders(),
+    body: JSON.stringify(data)
+  });
+  if (response.ok) {
+    const resData = await response.json().catch(() => ({ success: true }));
+    return { success: true, data: resData };
+  }
+  throw new Error(await extractErrorMessage(response) || `Failed to update customer`);
+}
+
+export async function deleteCustomer(id) {
+  const baseUrl = getBaseUrl();
+  const response = await fetch(`${baseUrl}/api/customers/${id}/delete/`, {
+    method: 'DELETE',
+    headers: getAuthHeaders()
+  });
+  if (response.ok || response.status === 204) {
+    return { success: true };
+  }
+  throw new Error(await extractErrorMessage(response) || `Failed to delete customer`);
+}
+
+export async function customerLogin(credentials) {
+  const baseUrl = getBaseUrl();
+  const response = await fetch(`${baseUrl}/api/customer/login/`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+    body: JSON.stringify(credentials)
+  });
+  if (response.ok) {
+    const data = await response.json();
+    const token = data.access || data.token || data.key || data.jwt;
+    if (token) localStorage.setItem('insure_auth_token', token);
+    return { success: true, data };
+  }
+  throw new Error(await extractErrorMessage(response) || 'Customer login failed.');
+}
+
+export async function getCustomerMe() {
+  const baseUrl = getBaseUrl();
+  const response = await fetch(`${baseUrl}/api/customer/me/`, {
+    method: 'GET',
+    headers: getAuthHeaders()
+  });
+  if (response.ok) {
+    return await response.json();
+  }
+  throw new Error(await extractErrorMessage(response) || `Failed to fetch customer profile`);
+}
+

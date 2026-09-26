@@ -20,6 +20,9 @@ import AdminLayout from './pages/AdminLayout';
 // Agent portal
 import AgentLayout from './pages/agent/AgentLayout';
 
+// Customer portal
+import CustomerLayout from './pages/customer/CustomerLayout';
+
 import './index.css';
 
 export default function App() {
@@ -45,6 +48,9 @@ export default function App() {
 
           {/* ── Agent portal (protected inside AgentLayout) ── */}
           <Route path="/agent/*" element={<AgentLayout />} />
+
+          {/* ── Customer portal (protected inside CustomerLayout) ── */}
+          <Route path="/customer/*" element={<CustomerLayout />} />
 
           {/* ── Catch-all ── */}
           <Route path="*" element={<Navigate to="/" replace />} />

@@ -1,15 +1,16 @@
 import { useState, useEffect } from 'react';
 
-export default function AgentModal({ isOpen, onClose, onSave, agent = null, isEditing = false }) {
+export default function CustomerModal({ isOpen, onClose, onSave, customer = null, isEditing = false }) {
   const [formData, setFormData] = useState({
     username: '',
     password: '',
     email: '',
-    agent_id: '',
+    customer_id: '',
     phone: '',
+    date_of_birth: '',
+    gender: 'MALE',
     aadhaar_number: '',
     pan_number: '',
-    insurance_company: '',
     address_line1: '',
     address_line2: '',
     city: '',
@@ -21,32 +22,34 @@ export default function AgentModal({ isOpen, onClose, onSave, agent = null, isEd
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
-    if (agent && isEditing) {
+    if (customer && isEditing) {
       setFormData({
-        username: agent.username || '',
+        username: customer.username || '',
         password: '',
-        email: agent.email || '',
-        agent_id: agent.agent_id || '',
-        phone: agent.phone || '',
-        aadhaar_number: agent.aadhaar_number || '',
-        pan_number: agent.pan_number || '',
-        insurance_company: agent.insurance_company || '',
-        address_line1: agent.address_line1 || '',
-        address_line2: agent.address_line2 || '',
-        city: agent.city || '',
-        state: agent.state || '',
-        pincode: agent.pincode || ''
+        email: customer.email || '',
+        customer_id: customer.customer_id || '',
+        phone: customer.phone || '',
+        date_of_birth: customer.date_of_birth || '',
+        gender: customer.gender || 'MALE',
+        aadhaar_number: customer.aadhaar_number || '',
+        pan_number: customer.pan_number || '',
+        address_line1: customer.address_line1 || '',
+        address_line2: customer.address_line2 || '',
+        city: customer.city || '',
+        state: customer.state || '',
+        pincode: customer.pincode || ''
       });
     } else {
       setFormData({
         username: '',
         password: '',
         email: '',
-        agent_id: '',
+        customer_id: '',
         phone: '',
+        date_of_birth: '',
+        gender: 'MALE',
         aadhaar_number: '',
         pan_number: '',
-        insurance_company: '',
         address_line1: '',
         address_line2: '',
         city: '',
@@ -55,7 +58,7 @@ export default function AgentModal({ isOpen, onClose, onSave, agent = null, isEd
       });
     }
     setErrors({});
-  }, [agent, isEditing, isOpen]);
+  }, [customer, isEditing, isOpen]);
 
   if (!isOpen) return null;
 
@@ -63,7 +66,7 @@ export default function AgentModal({ isOpen, onClose, onSave, agent = null, isEd
     const errs = {};
     if (!formData.username.trim()) errs.username = 'required';
     if (!formData.email.trim()) errs.email = 'required';
-    if (!formData.agent_id.trim()) errs.agent_id = 'required';
+    if (!formData.customer_id.trim()) errs.customer_id = 'required';
     if (!isEditing && !formData.password.trim()) errs.password = 'required';
     setErrors(errs);
     return Object.keys(errs).length === 0;
@@ -125,39 +128,53 @@ export default function AgentModal({ isOpen, onClose, onSave, agent = null, isEd
           <div style={styles.row}>
             <div style={styles.group}>
               <label style={styles.label}>USERNAME <span style={{color: '#8B0000'}}>*</span></label>
-              <input type="text" name="username" value={formData.username} onChange={handleChange} placeholder="e.g. john_agent" style={styles.input} />
-              <span style={styles.hint}>must be unique</span>
+              <input type="text" name="username" value={formData.username} onChange={handleChange} placeholder="e.g. john_cust" style={styles.input} />
               {errors.username && <span style={styles.errorText}>{errors.username}</span>}
             </div>
             <div style={styles.group}>
               <label style={styles.label}>PASSWORD <span style={{color: '#8B0000'}}>*</span></label>
               <input type={isEditing ? "text" : "password"} name="password" value={formData.password} onChange={handleChange} placeholder={isEditing ? "leave blank to keep" : "minimum 8 characters"} style={styles.input} />
-              <span style={styles.hint}>min 8 characters</span>
               {errors.password && <span style={styles.errorText}>{errors.password}</span>}
             </div>
           </div>
           <div style={styles.row}>
             <div style={styles.group}>
               <label style={styles.label}>EMAIL ADDRESS <span style={{color: '#8B0000'}}>*</span></label>
-              <input type="email" name="email" value={formData.email} onChange={handleChange} placeholder="agent@example.com" style={styles.input} />
+              <input type="email" name="email" value={formData.email} onChange={handleChange} placeholder="cust@example.com" style={styles.input} />
               {errors.email && <span style={styles.errorText}>{errors.email}</span>}
             </div>
           </div>
 
           <div style={styles.sectionHeader}>
-            <h3 style={styles.sectionTitle}><span style={styles.symbol}>§</span> AGENT PARTICULARS</h3>
+            <h3 style={styles.sectionTitle}><span style={styles.symbol}>§</span> CUSTOMER PARTICULARS</h3>
             <span style={styles.sectionSubtitle}>SECTION II</span>
           </div>
           <div style={styles.row}>
             <div style={styles.group}>
-              <label style={styles.label}>AGENT ID <span style={{color: '#8B0000'}}>*</span></label>
-              <input type="text" name="agent_id" value={formData.agent_id} onChange={handleChange} placeholder="e.g. AGT-001" style={styles.input} />
-              <span style={styles.hint}>assigned by agency</span>
-              {errors.agent_id && <span style={styles.errorText}>{errors.agent_id}</span>}
+              <label style={styles.label}>CUSTOMER ID <span style={{color: '#8B0000'}}>*</span></label>
+              <input type="text" name="customer_id" value={formData.customer_id} onChange={handleChange} placeholder="e.g. CUST-001" style={styles.input} />
+              {errors.customer_id && <span style={styles.errorText}>{errors.customer_id}</span>}
             </div>
             <div style={styles.group}>
               <label style={styles.label}>PHONE NUMBER</label>
               <input type="text" name="phone" value={formData.phone} onChange={handleChange} placeholder="10-digit number" style={styles.input} />
+            </div>
+          </div>
+          <div style={styles.row}>
+            <div style={styles.group}>
+              <label style={styles.label}>DATE OF BIRTH</label>
+              <input type="date" name="date_of_birth" value={formData.date_of_birth} onChange={handleChange} style={{...styles.input, color: formData.date_of_birth ? '#3B2F2F' : '#A09383'}} />
+            </div>
+            <div style={styles.group}>
+              <label style={styles.label}>GENDER</label>
+              <div style={styles.radioGroup}>
+                {['MALE', 'FEMALE', 'OTHER'].map(gender => (
+                  <label key={gender} style={styles.radioLabel}>
+                    <input type="radio" name="gender" value={gender} checked={formData.gender === gender} onChange={handleChange} style={{ accentColor: '#3B2F2F' }} />
+                    {gender}
+                  </label>
+                ))}
+              </div>
             </div>
           </div>
 
@@ -169,36 +186,16 @@ export default function AgentModal({ isOpen, onClose, onSave, agent = null, isEd
             <div style={styles.group}>
               <label style={styles.label}>AADHAAR NUMBER</label>
               <input type="text" name="aadhaar_number" value={formData.aadhaar_number} onChange={handleChange} placeholder="0000 0000 0000" style={styles.input} />
-              <span style={styles.hint}>12 digits</span>
             </div>
             <div style={styles.group}>
               <label style={styles.label}>PAN NUMBER</label>
               <input type="text" name="pan_number" value={formData.pan_number} onChange={handleChange} placeholder="ABCDE1234F" style={styles.input} />
-              <span style={styles.hint}>format: ABCDE1234F</span>
-            </div>
-          </div>
-
-          <div style={styles.sectionHeader}>
-            <h3 style={styles.sectionTitle}><span style={styles.symbol}>§</span> INSURANCE COMPANY</h3>
-            <span style={styles.sectionSubtitle}>SECTION IV</span>
-          </div>
-          <div style={styles.row}>
-            <div style={styles.group}>
-              <label style={styles.label}>SELECT COMPANY</label>
-              <div style={styles.radioGroup}>
-                {['ICICI LOMBARD', 'STAR HEALTH', 'NIVA BUPA'].map(company => (
-                  <label key={company} style={styles.radioLabel}>
-                    <input type="radio" name="insurance_company" value={company} checked={formData.insurance_company === company} onChange={handleChange} style={{ accentColor: '#3B2F2F' }} />
-                    {company}
-                  </label>
-                ))}
-              </div>
             </div>
           </div>
 
           <div style={styles.sectionHeader}>
             <h3 style={styles.sectionTitle}><span style={styles.symbol}>§</span> RESIDENTIAL ADDRESS</h3>
-            <span style={styles.sectionSubtitle}>SECTION V</span>
+            <span style={styles.sectionSubtitle}>SECTION IV</span>
           </div>
           
           <div style={{ paddingLeft: '1rem', borderLeft: '2px solid #C8B89C' }}>
@@ -226,14 +223,13 @@ export default function AgentModal({ isOpen, onClose, onSave, agent = null, isEd
               <div style={styles.group}>
                 <label style={styles.label}>PINCODE</label>
                 <input type="text" name="pincode" value={formData.pincode} onChange={handleChange} placeholder="000000" style={styles.input} />
-                <span style={styles.hint}>6 digits</span>
               </div>
             </div>
           </div>
 
           <div style={styles.footer}>
             <button type="button" onClick={onClose} style={styles.btnSecondary} disabled={isSubmitting}>CLEAR</button>
-            <button type="submit" style={styles.btnPrimary} disabled={isSubmitting}>{isSubmitting ? 'SAVING...' : (isEditing ? 'UPDATE AGENT' : 'REGISTER AGENT')}</button>
+            <button type="submit" style={styles.btnPrimary} disabled={isSubmitting}>{isSubmitting ? 'SAVING...' : (isEditing ? 'UPDATE CUSTOMER' : 'REGISTER CUSTOMER')}</button>
           </div>
         </form>
       </div>
