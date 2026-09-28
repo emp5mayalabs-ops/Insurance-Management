@@ -1,48 +1,39 @@
 import { useState, useEffect, useCallback } from 'react';
 import { 
-  User, Mail, Phone, Hash, ShieldCheck, ShieldAlert, 
-  Calendar, CheckCircle, XCircle, RefreshCw, Copy, 
-  Check, Award, FileText, TrendingUp, Shield,
-  Building, CreditCard, MapPin
+  User, Mail, Phone, Hash, ShieldCheck,
+  Award, FileText, CheckCircle, Shield,
+  Camera, Briefcase, DollarSign, Users,
+  Check, PhoneCall, HelpCircle, Edit3
 } from 'lucide-react';
 import { getAgentMe } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
+import { useNavigate } from 'react-router-dom';
 
 export default function AgentProfilePage() {
   const { user } = useAuth();
   const [agent, setAgent] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-  const [copiedKey, setCopiedKey] = useState('');
+  const navigate = useNavigate();
 
   const fetchProfile = useCallback(async () => {
     setLoading(true);
-    setError('');
     try {
       const res = await getAgentMe();
-      if (res && res.agent) {
-        setAgent(res.agent);
-      } else if (res && res.data?.agent) {
-        setAgent(res.data.agent);
-      } else {
-        setAgent(res);
-      }
+      if (res && res.agent) setAgent(res.agent);
+      else if (res && res.data?.agent) setAgent(res.data.agent);
+      else setAgent(res);
     } catch (err) {
-      console.error('Failed to load profile:', err);
-      // Fallback to auth context user if API failed or offline
       if (user) {
         setAgent({
           id: user.id || 5,
-          username: user.username || 'john_agent',
-          email: user.email || 'john@example.com',
-          agent_id: user.agent_id || 'AGT-001',
-          phone: user.phone || '9876543210',
+          username: user.username || 'hello',
+          email: user.email || 'hello@gmail.com',
+          agent_id: user.agent_id || 'ag333',
+          phone: user.phone || '87654323456',
           is_active: user.is_active !== undefined ? user.is_active : true,
-          is_user_active: user.is_user_active !== undefined ? user.is_user_active : true,
-          created_at: user.created_at || '2026-09-17T10:15:30Z',
+          created_at: user.created_at || '2026-09-25T13:12:00Z',
         });
       }
-      setError(err.message || 'Unable to fetch latest profile from server.');
     } finally {
       setLoading(false);
     }
@@ -52,21 +43,15 @@ export default function AgentProfilePage() {
     fetchProfile();
   }, [fetchProfile]);
 
-  const copyToClipboard = (text, key) => {
-    if (!text) return;
-    navigator.clipboard.writeText(text);
-    setCopiedKey(key);
-    setTimeout(() => setCopiedKey(''), 2500);
-  };
-
   const formatDate = (isoString) => {
     if (!isoString) return 'N/A';
     try {
       const date = new Date(isoString);
       return date.toLocaleDateString('en-US', {
-        year: 'numeric',
         month: 'short',
         day: 'numeric',
+        year: 'numeric',
+      }) + ', ' + date.toLocaleTimeString('en-US', {
         hour: '2-digit',
         minute: '2-digit',
       });
@@ -77,650 +62,219 @@ export default function AgentProfilePage() {
 
   const displayAgent = agent || user || {
     id: 5,
-    username: 'john_agent',
-    email: 'john@example.com',
-    agent_id: 'AGT-001',
-    phone: '9876543210',
+    username: 'hello',
+    email: 'hello@gmail.com',
+    agent_id: 'ag333',
+    phone: '87654323456',
     is_active: true,
-    is_user_active: true,
-    created_at: '2026-09-17T10:15:30Z',
+    created_at: '2026-09-25T13:12:00Z',
   };
 
   const initials = (displayAgent.username || 'AG')
-    .split('_')
-    .map((s) => s[0])
-    .join('')
-    .toUpperCase()
-    .slice(0, 2);
+    .slice(0, 1)
+    .toUpperCase();
 
   return (
-    <div className="dashboard-content">
+    <div className="dashboard-content" style={{ padding: '0 1rem' }}>
       {/* Top Header Row */}
-      <div className="page-header-row">
+      <div className="page-header-row" style={{ alignItems: 'center', marginBottom: '1.25rem' }}>
         <div>
-          <div className="flex items-center gap-2 text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">
-            <span>Agent Portal</span>
-            <span>/</span>
-            <span className="text-emerald-600">My Profile</span>
+          <div className="flex items-center gap-2 text-xs font-semibold text-slate-500 mb-1">
+            <span className="flex items-center gap-1"><User size={12} className="text-blue-500" /> Agent Portal</span>
+            <span>&gt;</span>
+            <span className="text-blue-600">My Profile</span>
           </div>
-          <h1 className="page-title">Agent Profile &amp; Credentials</h1>
-          <p className="page-subtitle">
-            Verified producer information, licensing authority, and direct contact records
+          <h1 className="text-2xl font-bold text-slate-900" style={{ margin: '0.25rem 0' }}>My Profile</h1>
+          <p className="text-sm text-slate-500 m-0">
+            Manage your profile information, view credentials and account details.
           </p>
         </div>
         <div className="header-action-buttons">
           <button
             type="button"
-            className="btn btn-secondary"
-            onClick={fetchProfile}
-            disabled={loading}
-            title="Reload agent profile data from /api/agent/me/"
+            className="flex items-center gap-2 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md font-medium text-sm transition-colors shadow-sm"
           >
-            <RefreshCw size={15} className={loading ? 'spin-animation' : ''} />
-            <span>{loading ? 'Syncing...' : 'Sync Profile'}</span>
+            <Edit3 size={15} />
+            <span>Edit Profile</span>
           </button>
         </div>
       </div>
 
-      {error && (
-        <div
-          style={{
-            backgroundColor: '#fef2f2',
-            border: '1px solid #fecaca',
-            color: '#991b1b',
-            borderRadius: '10px',
-            padding: '0.85rem 1.25rem',
-            marginBottom: '1.5rem',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            fontSize: '0.9rem',
-          }}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-            <span>⚠️</span>
-            <span>{error} (Displaying cached session data)</span>
-          </div>
-          <button
-            type="button"
-            onClick={fetchProfile}
-            style={{
-              background: 'transparent',
-              border: 'none',
-              color: '#b91c1c',
-              fontWeight: 600,
-              cursor: 'pointer',
-              textDecoration: 'underline',
-            }}
-          >
-            Retry
-          </button>
-        </div>
-      )}
-
-      {/* Main Profile Hero Banner */}
-      <div
-        className="dash-card"
-        style={{
-          background: 'linear-gradient(135deg, #ffffff 0%, #f0fdf4 100%)',
-          borderColor: '#bbf7d0',
-          marginBottom: '1.75rem',
-          overflow: 'hidden',
-          position: 'relative',
-        }}
-      >
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            flexWrap: 'wrap',
-            gap: '1.5rem',
-          }}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem', flexWrap: 'wrap' }}>
-            {/* Avatar */}
-            <div
-              style={{
-                width: '76px',
-                height: '76px',
-                borderRadius: '16px',
-                background: 'linear-gradient(135deg, #059669 0%, #0d9488 100%)',
-                color: '#ffffff',
-                fontSize: '1.8rem',
-                fontWeight: '800',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                boxShadow: '0 10px 20px -5px rgba(5, 150, 105, 0.4)',
-                flexShrink: 0,
-              }}
-            >
-              {initials}
-            </div>
-
-            {/* Header info */}
-            <div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
-                <h2 style={{ fontSize: '1.7rem', fontWeight: 800, color: '#0f172a', margin: 0 }}>
-                  {displayAgent.username}
-                </h2>
-                <span
-                  style={{
-                    backgroundColor: '#ecfdf5',
-                    color: '#065f46',
-                    border: '1px solid #a7f3d0',
-                    fontFamily: 'monospace',
-                    fontWeight: 700,
-                    padding: '0.2rem 0.65rem',
-                    borderRadius: '6px',
-                    fontSize: '0.88rem',
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '0.35rem',
-                  }}
-                >
-                  <Hash size={13} /> {displayAgent.agent_id}
-                </span>
-              </div>
-
-              <p style={{ margin: '0.35rem 0 0.65rem', color: '#64748b', fontSize: '0.95rem' }}>
-                Masters Companion Certified Insurance Producer · IRDAI Licensee
-              </p>
-
-              {/* Status Badges */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
-                {displayAgent.is_active ? (
-                  <span
-                    style={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: '0.4rem',
-                      padding: '0.3rem 0.75rem',
-                      borderRadius: '9999px',
-                      backgroundColor: '#d1fae5',
-                      color: '#047857',
-                      fontSize: '0.82rem',
-                      fontWeight: 700,
-                    }}
-                  >
-                    <span
-                      style={{
-                        width: '8px',
-                        height: '8px',
-                        borderRadius: '50%',
-                        backgroundColor: '#10b981',
-                        boxShadow: '0 0 0 3px rgba(16, 185, 129, 0.3)',
-                      }}
-                    />
-                    Active Producer
-                  </span>
-                ) : (
-                  <span
-                    style={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: '0.4rem',
-                      padding: '0.3rem 0.75rem',
-                      borderRadius: '9999px',
-                      backgroundColor: '#fee2e2',
-                      color: '#b91c1c',
-                      fontSize: '0.82rem',
-                      fontWeight: 700,
-                    }}
-                  >
-                    <XCircle size={14} /> Inactive Status
-                  </span>
-                )}
-
-                {displayAgent.is_user_active ? (
-                  <span
-                    style={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: '0.4rem',
-                      padding: '0.3rem 0.75rem',
-                      borderRadius: '9999px',
-                      backgroundColor: '#e0f2fe',
-                      color: '#0369a1',
-                      fontSize: '0.82rem',
-                      fontWeight: 600,
-                    }}
-                  >
-                    <CheckCircle size={14} /> User Login Active
-                  </span>
-                ) : (
-                  <span
-                    style={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: '0.4rem',
-                      padding: '0.3rem 0.75rem',
-                      borderRadius: '9999px',
-                      backgroundColor: '#fef3c7',
-                      color: '#92400e',
-                      fontSize: '0.82rem',
-                      fontWeight: 600,
-                    }}
-                  >
-                    <ShieldAlert size={14} /> User Suspended
-                  </span>
-                )}
-              </div>
-            </div>
-          </div>
-
-          {/* Quick Member Since Badge */}
-          <div
-            style={{
-              backgroundColor: '#ffffff',
-              border: '1px solid #e2e8f0',
-              borderRadius: '12px',
-              padding: '0.85rem 1.25rem',
-              textAlign: 'right',
-              boxShadow: '0 2px 4px rgba(0,0,0,0.02)',
-            }}
-          >
-            <div style={{ fontSize: '0.78rem', color: '#64748b', fontWeight: 600, textTransform: 'uppercase' }}>
-              Producer Since
-            </div>
-            <div style={{ fontSize: '1rem', fontWeight: 700, color: '#0f172a', marginTop: '0.2rem' }}>
-              {formatDate(displayAgent.created_at)}
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Grid: Details Table & Side Cards */}
-      <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '1.75rem' }}>
-        {/* Left Column: Full Account Information */}
-        <div className="dash-card">
-          <div className="dash-card-header" style={{ marginBottom: '1.5rem' }}>
-            <div>
-              <h2 className="dash-card-title" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <ShieldCheck size={20} className="text-emerald-600" />
-                Verified Agent Profile Details
-              </h2>
-              <p className="dash-card-subtitle">
-                Official registration and identity parameters returned from{' '}
-                <code style={{ background: '#f1f5f9', padding: '0.15rem 0.4rem', borderRadius: '4px' }}>
-                  /api/agent/me/
-                </code>
-              </p>
-            </div>
-          </div>
-
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(2, 1fr)',
-              gap: '1.25rem',
-            }}
-          >
-            {/* Agent ID */}
-            <div
-              style={{
-                backgroundColor: '#f8fafc',
-                border: '1px solid #e2e8f0',
-                borderRadius: '10px',
-                padding: '1rem',
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <span style={{ fontSize: '0.82rem', fontWeight: 600, color: '#64748b', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                  <Hash size={14} /> Agent ID
-                </span>
-                <button
-                  type="button"
-                  onClick={() => copyToClipboard(displayAgent.agent_id, 'agent_id')}
-                  style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: '#64748b' }}
-                  title="Copy Agent ID"
-                >
-                  {copiedKey === 'agent_id' ? <Check size={14} className="text-emerald-600" /> : <Copy size={14} />}
-                </button>
-              </div>
-              <div style={{ marginTop: '0.35rem', fontSize: '1.15rem', fontWeight: 800, fontFamily: 'monospace', color: '#047857' }}>
-                {displayAgent.agent_id || 'N/A'}
-              </div>
-            </div>
-
-            {/* Username */}
-            <div
-              style={{
-                backgroundColor: '#f8fafc',
-                border: '1px solid #e2e8f0',
-                borderRadius: '10px',
-                padding: '1rem',
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <span style={{ fontSize: '0.82rem', fontWeight: 600, color: '#64748b', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                  <User size={14} /> Username
-                </span>
-                <button
-                  type="button"
-                  onClick={() => copyToClipboard(displayAgent.username, 'username')}
-                  style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: '#64748b' }}
-                  title="Copy Username"
-                >
-                  {copiedKey === 'username' ? <Check size={14} className="text-emerald-600" /> : <Copy size={14} />}
-                </button>
-              </div>
-              <div style={{ marginTop: '0.35rem', fontSize: '1.05rem', fontWeight: 700, color: '#0f172a' }}>
-                {displayAgent.username || 'N/A'}
-              </div>
-            </div>
-
-            {/* Email Address */}
-            <div
-              style={{
-                backgroundColor: '#f8fafc',
-                border: '1px solid #e2e8f0',
-                borderRadius: '10px',
-                padding: '1rem',
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <span style={{ fontSize: '0.82rem', fontWeight: 600, color: '#64748b', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                  <Mail size={14} /> Email Address
-                </span>
-                <button
-                  type="button"
-                  onClick={() => copyToClipboard(displayAgent.email, 'email')}
-                  style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: '#64748b' }}
-                  title="Copy Email"
-                >
-                  {copiedKey === 'email' ? <Check size={14} className="text-emerald-600" /> : <Copy size={14} />}
-                </button>
-              </div>
-              <div style={{ marginTop: '0.35rem' }}>
-                <a
-                  href={`mailto:${displayAgent.email}`}
-                  style={{ color: '#2563eb', fontWeight: 600, fontSize: '0.95rem', textDecoration: 'none' }}
-                >
-                  {displayAgent.email || 'N/A'}
-                </a>
-              </div>
-            </div>
-
-            {/* Phone Number */}
-            <div
-              style={{
-                backgroundColor: '#f8fafc',
-                border: '1px solid #e2e8f0',
-                borderRadius: '10px',
-                padding: '1rem',
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <span style={{ fontSize: '0.82rem', fontWeight: 600, color: '#64748b', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                  <Phone size={14} /> Phone Number
-                </span>
-                <button
-                  type="button"
-                  onClick={() => copyToClipboard(displayAgent.phone, 'phone')}
-                  style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: '#64748b' }}
-                  title="Copy Phone"
-                >
-                  {copiedKey === 'phone' ? <Check size={14} className="text-emerald-600" /> : <Copy size={14} />}
-                </button>
-              </div>
-              <div style={{ marginTop: '0.35rem' }}>
-                <a
-                  href={`tel:${displayAgent.phone}`}
-                  style={{ color: '#0f172a', fontWeight: 700, fontSize: '1rem', textDecoration: 'none' }}
-                >
-                  {displayAgent.phone || 'N/A'}
-                </a>
-              </div>
-            </div>
-
-            {/* Aadhaar Number */}
-            <div
-              style={{
-                backgroundColor: '#f8fafc',
-                border: '1px solid #e2e8f0',
-                borderRadius: '10px',
-                padding: '1rem',
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <span style={{ fontSize: '0.82rem', fontWeight: 600, color: '#64748b', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                  <CreditCard size={14} /> Aadhaar Number
-                </span>
-                <button
-                  type="button"
-                  onClick={() => copyToClipboard(displayAgent.aadhaar_number, 'aadhaar_number')}
-                  style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: '#64748b' }}
-                  title="Copy Aadhaar"
-                >
-                  {copiedKey === 'aadhaar_number' ? <Check size={14} className="text-emerald-600" /> : <Copy size={14} />}
-                </button>
-              </div>
-              <div style={{ marginTop: '0.35rem', fontSize: '1.05rem', fontWeight: 700, color: '#0f172a' }}>
-                {displayAgent.aadhaar_number || 'XXXXXXXXXXXX'}
-              </div>
-            </div>
-
-            {/* PAN Number */}
-            <div
-              style={{
-                backgroundColor: '#f8fafc',
-                border: '1px solid #e2e8f0',
-                borderRadius: '10px',
-                padding: '1rem',
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <span style={{ fontSize: '0.82rem', fontWeight: 600, color: '#64748b', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                  <FileText size={14} /> PAN Number
-                </span>
-                <button
-                  type="button"
-                  onClick={() => copyToClipboard(displayAgent.pan_number, 'pan_number')}
-                  style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: '#64748b' }}
-                  title="Copy PAN"
-                >
-                  {copiedKey === 'pan_number' ? <Check size={14} className="text-emerald-600" /> : <Copy size={14} />}
-                </button>
-              </div>
-              <div style={{ marginTop: '0.35rem', fontSize: '1.05rem', fontWeight: 700, color: '#0f172a' }}>
-                {displayAgent.pan_number || 'XXXXXXXXXX'}
-              </div>
-            </div>
-
-            {/* Insurance Company */}
-            <div
-              style={{
-                backgroundColor: '#f8fafc',
-                border: '1px solid #e2e8f0',
-                borderRadius: '10px',
-                padding: '1rem',
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <span style={{ fontSize: '0.82rem', fontWeight: 600, color: '#64748b', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                  <Building size={14} /> Insurance Company
-                </span>
-              </div>
-              <div style={{ marginTop: '0.35rem', fontSize: '1.05rem', fontWeight: 700, color: '#0f172a' }}>
-                {displayAgent.insurance_company_display || displayAgent.insurance_company || 'N/A'}
-              </div>
-            </div>
-
-            {/* Full Address */}
-            <div
-              style={{
-                backgroundColor: '#f8fafc',
-                border: '1px solid #e2e8f0',
-                borderRadius: '10px',
-                padding: '1rem',
-                gridColumn: '1 / -1'
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <span style={{ fontSize: '0.82rem', fontWeight: 600, color: '#64748b', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                  <MapPin size={14} /> Full Address
-                </span>
-              </div>
-              <div style={{ marginTop: '0.35rem', fontSize: '0.95rem', color: '#334155', lineHeight: '1.5' }}>
-                {displayAgent.address_line1 && <div>{displayAgent.address_line1}</div>}
-                {displayAgent.address_line2 && <div>{displayAgent.address_line2}</div>}
-                <div>
-                  {[displayAgent.city, displayAgent.state, displayAgent.pincode].filter(Boolean).join(', ') || 'N/A'}
+      <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '1.25rem', marginBottom: '1.25rem' }}>
+        {/* Left Card: Agent Info */}
+        <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
+          <div className="p-6 flex-1">
+            <div className="flex items-start gap-5 mb-8">
+              {/* Avatar */}
+              <div className="relative">
+                <div className="w-24 h-24 rounded-full bg-teal-700 text-white flex items-center justify-center text-3xl font-semibold">
+                  {initials}
+                </div>
+                <div className="absolute bottom-0 right-0 bg-blue-500 text-white p-1.5 rounded-full border-2 border-white cursor-pointer">
+                  <Camera size={14} />
                 </div>
               </div>
-            </div>
-
-            {/* Agent Licensing Status */}
-            <div
-              style={{
-                backgroundColor: '#f8fafc',
-                border: '1px solid #e2e8f0',
-                borderRadius: '10px',
-                padding: '1rem',
-              }}
-            >
-              <span style={{ fontSize: '0.82rem', fontWeight: 600, color: '#64748b', display: 'block' }}>
-                Licensing Authority (is_active)
-              </span>
-              <div style={{ marginTop: '0.45rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                {displayAgent.is_active ? (
-                  <span style={{ color: '#047857', fontWeight: 700, fontSize: '0.95rem', display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
-                    <CheckCircle size={16} /> Fully Licensed &amp; Active
-                  </span>
-                ) : (
-                  <span style={{ color: '#b91c1c', fontWeight: 700, fontSize: '0.95rem', display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
-                    <XCircle size={16} /> Inactive / Suspended
-                  </span>
-                )}
+              
+              {/* Profile Details */}
+              <div>
+                <div className="flex items-center gap-3">
+                  <h2 className="text-xl font-bold text-slate-900 m-0">{displayAgent.username}</h2>
+                  {displayAgent.is_active && (
+                    <span className="flex items-center gap-1 bg-green-100 text-green-700 px-2 py-0.5 rounded text-xs font-semibold border border-green-200">
+                      <ShieldCheck size={12} /> Active Producer
+                    </span>
+                  )}
+                </div>
+                <div className="text-teal-700 font-semibold mt-1 mb-1">{displayAgent.agent_id}</div>
+                <div className="text-slate-500 text-sm">Masters Companion Certified Insurance Producer</div>
+                <div className="text-slate-500 text-sm">IRDAI Licensee</div>
               </div>
             </div>
 
-            {/* User Account Status */}
-            <div
-              style={{
-                backgroundColor: '#f8fafc',
-                border: '1px solid #e2e8f0',
-                borderRadius: '10px',
-                padding: '1rem',
-              }}
-            >
-              <span style={{ fontSize: '0.82rem', fontWeight: 600, color: '#64748b', display: 'block' }}>
-                System User Account (is_user_active)
-              </span>
-              <div style={{ marginTop: '0.45rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                {displayAgent.is_user_active ? (
-                  <span style={{ color: '#0284c7', fontWeight: 700, fontSize: '0.95rem', display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
-                    <CheckCircle size={16} /> Login Access Enabled
-                  </span>
-                ) : (
-                  <span style={{ color: '#d97706', fontWeight: 700, fontSize: '0.95rem', display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
-                    <ShieldAlert size={16} /> Account Access Revoked
-                  </span>
-                )}
+            {/* Info Grid */}
+            <div className="grid grid-cols-4 gap-4 mt-2">
+              <div className="flex flex-col gap-1">
+                <div className="flex items-center gap-2 text-slate-500 text-xs font-medium">
+                  <div className="p-1.5 bg-slate-100 rounded-md"><Shield size={14} /></div> Agent ID
+                </div>
+                <div className="font-semibold text-slate-800 text-sm">{displayAgent.agent_id}</div>
+              </div>
+              <div className="flex flex-col gap-1">
+                <div className="flex items-center gap-2 text-slate-500 text-xs font-medium">
+                  <div className="p-1.5 bg-slate-100 rounded-md"><User size={14} /></div> Username
+                </div>
+                <div className="font-semibold text-slate-800 text-sm">{displayAgent.username}</div>
+              </div>
+              <div className="flex flex-col gap-1">
+                <div className="flex items-center gap-2 text-slate-500 text-xs font-medium">
+                  <div className="p-1.5 bg-slate-100 rounded-md"><Mail size={14} /></div> Email
+                </div>
+                <div className="font-semibold text-slate-800 text-sm">{displayAgent.email}</div>
+              </div>
+              <div className="flex flex-col gap-1">
+                <div className="flex items-center gap-2 text-slate-500 text-xs font-medium">
+                  <div className="p-1.5 bg-slate-100 rounded-md"><Phone size={14} /></div> Phone
+                </div>
+                <div className="font-semibold text-slate-800 text-sm">{displayAgent.phone}</div>
               </div>
             </div>
-
-            {/* Account Created At */}
-            <div
-              style={{
-                backgroundColor: '#f8fafc',
-                border: '1px solid #e2e8f0',
-                borderRadius: '10px',
-                padding: '1rem',
-              }}
-            >
-              <span style={{ fontSize: '0.82rem', fontWeight: 600, color: '#64748b', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                <Calendar size={14} /> Created At
-              </span>
-              <div style={{ marginTop: '0.35rem', fontSize: '0.95rem', fontWeight: 600, color: '#334155' }}>
-                {formatDate(displayAgent.created_at)}
+          </div>
+          
+          {/* Bottom green banner */}
+          <div className="bg-emerald-50 border-t border-emerald-100 p-3 px-6 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="p-1.5 bg-emerald-100 text-emerald-600 rounded-md">
+                <ShieldCheck size={18} />
+              </div>
+              <div>
+                <div className="font-semibold text-emerald-700 text-sm">Your profile is verified</div>
+                <div className="text-emerald-600/80 text-xs">Registration and identity parameters are verified from /api/agent/me/</div>
               </div>
             </div>
+            <div className="text-emerald-500">
+              <CheckCircle size={20} />
+            </div>
+          </div>
+        </div>
 
-            {/* Database ID */}
-            <div
-              style={{
-                backgroundColor: '#f8fafc',
-                border: '1px solid #e2e8f0',
-                borderRadius: '10px',
-                padding: '1rem',
-              }}
+        {/* Right Card: Producer Information */}
+        <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
+          <h3 className="flex items-center gap-2 font-bold text-slate-900 mb-6 text-lg">
+            <div className="p-1.5 bg-blue-50 text-blue-600 rounded-lg"><Award size={18} /></div>
+            Producer Information
+          </h3>
+          
+          <div className="flex flex-col gap-4">
+            <div className="flex justify-between items-center py-2 border-b border-slate-100">
+              <span className="text-slate-500 text-sm">Designation</span>
+              <span className="font-semibold text-slate-800 text-sm">Senior Agent</span>
+            </div>
+            <div className="flex justify-between items-center py-2 border-b border-slate-100">
+              <span className="text-slate-500 text-sm">Agency Network</span>
+              <span className="font-semibold text-slate-800 text-sm">Masters Companion</span>
+            </div>
+            <div className="flex justify-between items-center py-2 border-b border-slate-100">
+              <span className="text-slate-500 text-sm">Commission Tier</span>
+              <span className="font-semibold text-slate-800 text-sm">Tier 1 (18.5%)</span>
+            </div>
+            <div className="flex justify-between items-center py-2">
+              <span className="text-slate-500 text-sm">Joined On</span>
+              <span className="font-semibold text-slate-800 text-sm">{formatDate(displayAgent.created_at)}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Bottom row: Quick Actions, Stats, Support */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1.25rem' }}>
+        
+        {/* Quick Actions */}
+        <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-5">
+          <h3 className="flex items-center gap-2 font-bold text-slate-900 mb-4 text-md">
+            <div className="p-1.5 bg-blue-50 text-blue-600 rounded-lg"><Briefcase size={16} /></div>
+            Quick Actions
+          </h3>
+          <div className="flex gap-3">
+            <button 
+              className="flex-1 py-2 px-3 border border-slate-200 rounded-lg text-blue-600 text-sm font-semibold hover:bg-slate-50 transition-colors"
+              onClick={() => navigate('/agent/policies')}
             >
-              <span style={{ fontSize: '0.82rem', fontWeight: 600, color: '#64748b', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                <Hash size={14} /> Internal Database ID
-              </span>
-              <div style={{ marginTop: '0.35rem', fontSize: '0.95rem', fontWeight: 700, color: '#475569' }}>
-                #{displayAgent.id || 'N/A'}
+              View Policies
+            </button>
+            <button 
+              className="flex-1 py-2 px-3 bg-blue-600 text-white rounded-lg text-sm font-semibold hover:bg-blue-700 transition-colors"
+              onClick={() => navigate('/agent/commissions')}
+            >
+              Check Commissions
+            </button>
+          </div>
+        </div>
+
+        {/* Profile Stats */}
+        <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-5">
+          <h3 className="flex items-center gap-2 font-bold text-slate-900 mb-4 text-md">
+            <div className="p-1.5 bg-blue-50 text-blue-600 rounded-lg"><TrendingUp size={16} /></div>
+            Profile Stats
+          </h3>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-blue-50 text-blue-500 rounded-lg"><Users size={18} /></div>
+              <div>
+                <div className="text-xs text-slate-500 font-medium">Total Customers</div>
+                <div className="font-bold text-slate-900 text-lg">248</div>
+              </div>
+            </div>
+            <div className="flex items-center gap-3 border-l border-r border-slate-100 px-4">
+              <div className="p-2 bg-emerald-50 text-emerald-500 rounded-lg"><FileText size={18} /></div>
+              <div>
+                <div className="text-xs text-slate-500 font-medium">Active Policies</div>
+                <div className="font-bold text-slate-900 text-lg">182</div>
+              </div>
+            </div>
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-emerald-50 text-emerald-500 rounded-lg"><DollarSign size={18} /></div>
+              <div>
+                <div className="text-xs text-slate-500 font-medium">Total Commissions</div>
+                <div className="font-bold text-slate-900 text-lg">₹ 1,24,500</div>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Right Column: Standing, Commission Tier & Quick Actions */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-          {/* Standing Card */}
-          <div className="dash-card">
-            <h3 className="dash-card-title" style={{ fontSize: '1.1rem', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
-              <Award size={18} className="text-amber-500" />
-              Producer Standing
-            </h3>
-            
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #f1f5f9', paddingBottom: '0.65rem' }}>
-                <span style={{ fontSize: '0.85rem', color: '#64748b' }}>Designation</span>
-                <span style={{ fontSize: '0.88rem', fontWeight: 700, color: '#0f172a' }}>Senior Agent</span>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #f1f5f9', paddingBottom: '0.65rem' }}>
-                <span style={{ fontSize: '0.85rem', color: '#64748b' }}>Agency Network</span>
-                <span style={{ fontSize: '0.88rem', fontWeight: 600, color: '#1e3a8a' }}>Masters Companion</span>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #f1f5f9', paddingBottom: '0.65rem' }}>
-                <span style={{ fontSize: '0.85rem', color: '#64748b' }}>Commission Tier</span>
-                <span style={{ fontSize: '0.88rem', fontWeight: 700, color: '#059669' }}>Tier 1 (18.5%)</span>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ fontSize: '0.85rem', color: '#64748b' }}>IRDAI Compliance</span>
-                <span style={{ fontSize: '0.85rem', fontWeight: 700, color: '#16a34a', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-                  <CheckCircle size={14} /> Certified
-                </span>
-              </div>
-            </div>
-          </div>
-
-          {/* Quick Actions Card */}
-          <div className="dash-card">
-            <h3 className="dash-card-title" style={{ fontSize: '1.1rem', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
-              <TrendingUp size={18} className="text-blue-600" />
-              Agent Actions
-            </h3>
-            
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-              <button
-                type="button"
-                className="btn btn-primary"
-                style={{
-                  width: '100%',
-                  justifyContent: 'center',
-                  background: 'linear-gradient(135deg, #059669 0%, #0d9488 100%)',
-                }}
-                onClick={() => alert('Policy binding module: Access client directory to issue a new cover note.')}
-              >
-                <FileText size={16} /> Issue New Policy
-              </button>
-              <button
-                type="button"
-                className="btn btn-secondary"
-                style={{ width: '100%', justifyContent: 'center' }}
-                onClick={() => copyToClipboard(JSON.stringify(displayAgent, null, 2), 'json')}
-              >
-                {copiedKey === 'json' ? <Check size={16} className="text-emerald-600" /> : <Copy size={16} />}
-                <span>{copiedKey === 'json' ? 'Copied JSON!' : 'Copy Agent JSON'}</span>
-              </button>
-            </div>
-          </div>
+        {/* Support */}
+        <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-5">
+          <h3 className="flex items-center gap-2 font-bold text-slate-900 mb-3 text-md">
+            <div className="p-1.5 bg-blue-50 text-blue-600 rounded-lg"><HelpCircle size={16} /></div>
+            Support
+          </h3>
+          <p className="text-xs text-slate-500 mb-3">
+            Need help? Contact our underwriter helpline for any assistance or queries.
+          </p>
+          <button className="flex items-center gap-2 py-1.5 px-3 border border-blue-200 text-blue-600 rounded-lg text-sm font-semibold hover:bg-blue-50 transition-colors w-fit">
+            <PhoneCall size={14} /> Underwriter Helpline
+          </button>
         </div>
+
       </div>
     </div>
   );
