@@ -4,225 +4,281 @@ import { getCustomers, createCustomer, updateCustomer, deleteCustomer } from '..
 import CustomerModal from '../../components/CustomerModal';
 import { Users, Plus, Edit2, Trash2, Eye, Search, Filter, ChevronLeft, ChevronRight, ChevronDown } from 'lucide-react';
 
+const s = {
+  page: { padding: '0' },
+  headerRow: { display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '1.5rem' },
+  breadcrumb: { display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', color: '#64748b', marginBottom: '6px' },
+  breadcrumbSep: { color: '#94a3b8' },
+  breadcrumbActive: { color: '#3b82f6', fontWeight: 600 },
+  pageTitle: { fontSize: '1.5rem', fontWeight: 700, color: '#0f172a', margin: 0 },
+  pageSubtitle: { fontSize: '13px', color: '#64748b', margin: '4px 0 0 0' },
+  addBtn: { display: 'flex', alignItems: 'center', gap: '6px', backgroundColor: '#3b82f6', color: '#fff', padding: '8px 16px', borderRadius: '8px', border: 'none', cursor: 'pointer', fontWeight: 600, fontSize: '13px', whiteSpace: 'nowrap' },
+
+  card: { backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '12px', boxShadow: '0 1px 4px rgba(0,0,0,0.06)', overflow: 'hidden' },
+
+  toolbar: { display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '10px', padding: '12px 16px', borderBottom: '1px solid #f1f5f9' },
+  searchBox: { display: 'flex', alignItems: 'center', gap: '6px', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '7px 12px', minWidth: '300px', backgroundColor: '#fafafa' },
+  searchInput: { border: 'none', background: 'transparent', outline: 'none', fontSize: '13px', color: '#374151', width: '100%' },
+  filterBtn: { display: 'flex', alignItems: 'center', gap: '6px', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '7px 12px', backgroundColor: '#fff', cursor: 'pointer', fontSize: '13px', fontWeight: 500, color: '#374151' },
+
+  table: { width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '13px' },
+  thead: { backgroundColor: '#f8fafc' },
+  th: { padding: '12px 20px', fontWeight: 600, color: '#64748b', fontSize: '12px', borderBottom: '1px solid #e2e8f0' },
+  tdId: { padding: '14px 20px', color: '#64748b', fontWeight: 600 },
+  tdName: { padding: '14px 20px' },
+  nameCell: { display: 'flex', alignItems: 'center', gap: '10px' },
+  nameAvatar: { width: '28px', height: '28px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: '11px', flexShrink: 0 },
+  nameText: { fontWeight: 500, color: '#334155' },
+  tdEmail: { padding: '14px 20px', color: '#3b82f6' },
+  tdPhone: { padding: '14px 20px', color: '#475569', fontWeight: 500 },
+  tdActions: { padding: '14px 20px' },
+  actionBtns: { display: 'flex', gap: '8px' },
+  viewBtn: { backgroundColor: '#eff6ff', color: '#3b82f6', border: 'none', cursor: 'pointer', padding: '5px', borderRadius: '6px', display: 'flex' },
+  editBtn: { backgroundColor: '#fffbeb', color: '#d97706', border: 'none', cursor: 'pointer', padding: '5px', borderRadius: '6px', display: 'flex' },
+  deleteBtn: { backgroundColor: '#fef2f2', color: '#ef4444', border: 'none', cursor: 'pointer', padding: '5px', borderRadius: '6px', display: 'flex' },
+
+  footer: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', borderTop: '1px solid #f1f5f9', fontSize: '13px', color: '#64748b' },
+  pagination: { display: 'flex', alignItems: 'center', gap: '4px' },
+  pageBtn: { width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '6px', border: '1px solid #e2e8f0', cursor: 'pointer', fontSize: '13px', fontWeight: 500, color: '#374151', backgroundColor: '#fff' },
+  pageBtnActive: { width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '6px', border: '1px solid #3b82f6', cursor: 'pointer', fontSize: '13px', fontWeight: 600, color: '#fff', backgroundColor: '#3b82f6' },
+  pageBtnArrow: { width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '6px', border: '1px solid #e2e8f0', cursor: 'pointer', color: '#94a3b8', backgroundColor: '#fff' },
+  pageBtnArrowDisabled: { width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '6px', border: '1px solid #f1f5f9', cursor: 'not-allowed', color: '#e2e8f0', backgroundColor: '#fafafa' },
+};
+
+const AVATAR_COLORS = [
+  ['#dbeafe', '#1d4ed8'], ['#fce7f3', '#be185d'], ['#dcfce7', '#15803d'],
+  ['#fef3c7', '#b45309'], ['#ede9fe', '#7c3aed'],
+];
+
+const PAGE_SIZE = 10;
+
 export default function CustomersPage() {
-  const [customers, setCustomers] = useState([]);
+  const [allCustomers, setAllCustomers] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-  
+  const [currentPage, setCurrentPage] = useState(1);
+  const [searchQuery, setSearchQuery] = useState('');
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedCustomer, setSelectedCustomer] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
-
   const navigate = useNavigate();
 
   const fetchCustomers = async () => {
     try {
       setLoading(true);
       const res = await getCustomers();
-      // Ensure we have some default data to match screenshot if API is empty/fails
       if (res && res.data && res.data.length > 0) {
-        setCustomers(res.data);
+        setAllCustomers(res.data);
       } else {
-        setCustomers([
-          { id: 1, customer_id: 'cx001', username: 'Suresh Kumar', email: 'suresh@gmail.com', phone: '98765432456' },
-          { id: 2, customer_id: 'cx002', username: 'Priya Sharma', email: 'priya@gmail.com', phone: '9123456780' },
-          { id: 3, customer_id: 'cx003', username: 'Rahul Mehta', email: 'rahul@outlook.com', phone: '9988776655' },
-          { id: 4, customer_id: 'cx004', username: 'Anita Verma', email: 'anita@gmail.com', phone: '8765432109' },
-          { id: 5, customer_id: 'cx005', username: 'Vikram Singh', email: 'vikram@abc.com', phone: '9012345678' },
-        ]);
+        setAllCustomers([]);
       }
-    } catch (err) {
-      // Fallback for visual match
-      setCustomers([
-        { id: 1, customer_id: 'cx001', username: 'Suresh Kumar', email: 'suresh@gmail.com', phone: '98765432456' },
-        { id: 2, customer_id: 'cx002', username: 'Priya Sharma', email: 'priya@gmail.com', phone: '9123456780' },
-        { id: 3, customer_id: 'cx003', username: 'Rahul Mehta', email: 'rahul@outlook.com', phone: '9988776655' },
-        { id: 4, customer_id: 'cx004', username: 'Anita Verma', email: 'anita@gmail.com', phone: '8765432109' },
-        { id: 5, customer_id: 'cx005', username: 'Vikram Singh', email: 'vikram@abc.com', phone: '9012345678' },
-      ]);
+    } catch {
+      setAllCustomers([]);
     } finally {
       setLoading(false);
     }
   };
 
-  useEffect(() => {
-    fetchCustomers();
-  }, []);
+  useEffect(() => { fetchCustomers(); }, []);
 
-  const handleCreate = () => {
-    setSelectedCustomer(null);
-    setIsEditing(false);
-    setModalOpen(true);
+  // Reset to page 1 whenever search query changes
+  useEffect(() => { setCurrentPage(1); }, [searchQuery]);
+
+  // Filter by search query
+  const filteredCustomers = allCustomers.filter(c => {
+    if (!searchQuery.trim()) return true;
+    const q = searchQuery.toLowerCase();
+    return (
+      (c.username || '').toLowerCase().includes(q) ||
+      (c.email || '').toLowerCase().includes(q) ||
+      (c.phone || '').toLowerCase().includes(q) ||
+      (c.customer_id || '').toLowerCase().includes(q)
+    );
+  });
+
+  const totalCustomers = filteredCustomers.length;
+  const totalPages = Math.max(1, Math.ceil(totalCustomers / PAGE_SIZE));
+
+  // Clamp currentPage if it goes out of range after filter/delete
+  const safePage = Math.min(currentPage, totalPages);
+  const startIdx = (safePage - 1) * PAGE_SIZE;
+  const endIdx = Math.min(startIdx + PAGE_SIZE, totalCustomers);
+  const pageCustomers = filteredCustomers.slice(startIdx, endIdx);
+
+  // Build page number buttons (show max 5 around current page)
+  const getPageNumbers = () => {
+    if (totalPages <= 5) {
+      return Array.from({ length: totalPages }, (_, i) => i + 1);
+    }
+    let start = Math.max(1, safePage - 2);
+    let end = Math.min(totalPages, start + 4);
+    if (end - start < 4) start = Math.max(1, end - 4);
+    return Array.from({ length: end - start + 1 }, (_, i) => start + i);
   };
 
-  const handleEdit = (customer) => {
-    setSelectedCustomer(customer);
-    setIsEditing(true);
-    setModalOpen(true);
-  };
-
+  const handleCreate = () => { setSelectedCustomer(null); setIsEditing(false); setModalOpen(true); };
+  const handleEdit = (c) => { setSelectedCustomer(c); setIsEditing(true); setModalOpen(true); };
   const handleDelete = async (id) => {
-    if (window.confirm('Are you sure you want to delete this customer?')) {
+    if (window.confirm('Delete this customer?')) {
       try {
         await deleteCustomer(id);
-        fetchCustomers();
-      } catch (err) {
-        alert(err.message);
-      }
+        await fetchCustomers();
+        // If last item on this page was deleted, go back one page
+        const newTotal = allCustomers.length - 1;
+        const newTotalPages = Math.max(1, Math.ceil(newTotal / PAGE_SIZE));
+        if (safePage > newTotalPages) setCurrentPage(newTotalPages);
+      } catch (err) { alert(err.message); }
     }
   };
-
   const handleSave = async (data) => {
-    try {
-      if (isEditing) {
-        await updateCustomer(selectedCustomer.id, data);
-      } else {
-        await createCustomer(data);
-      }
-      fetchCustomers();
-    } catch (err) {
-      throw err;
-    }
+    if (isEditing) await updateCustomer(selectedCustomer.id, data);
+    else await createCustomer(data);
+    await fetchCustomers();
   };
 
-  const getInitials = (name) => {
-    return (name || 'C').slice(0, 1).toUpperCase();
-  };
+  const getInitials = (name) => (name || 'C').slice(0, 1).toUpperCase();
+  const getAvatarColors = (idx) => AVATAR_COLORS[idx % AVATAR_COLORS.length];
 
-  if (loading) return <div className="p-4">Loading customers...</div>;
+  if (loading) return <div style={{ padding: '24px', color: '#64748b' }}>Loading customers...</div>;
 
   return (
-    <div style={{ padding: '0 1rem' }}>
-      
-      {/* Top Header Row */}
-      <div className="page-header-row" style={{ alignItems: 'flex-start', marginBottom: '1.25rem' }}>
+    <div style={s.page}>
+      {/* Header */}
+      <div style={s.headerRow}>
         <div>
-          <div className="flex items-center gap-2 text-xs font-semibold text-slate-500 mb-1">
-            <span className="flex items-center gap-1"><Users size={12} className="text-blue-500" /> Agent Portal</span>
-            <span>&gt;</span>
-            <span className="text-blue-600">Customers</span>
+          <div style={s.breadcrumb}>
+            <span>Agent Portal</span>
+            <span style={s.breadcrumbSep}>&gt;</span>
+            <span style={s.breadcrumbActive}>Customers</span>
           </div>
-          <h1 className="text-2xl font-bold text-slate-900" style={{ margin: '0.25rem 0' }}>My Customers</h1>
-          <p className="text-sm text-slate-500 m-0">
-            Manage your registered customers.
-          </p>
+          <h1 style={s.pageTitle}>My Customers</h1>
+          <p style={s.pageSubtitle}>Manage your registered customers.</p>
         </div>
-        <div className="header-action-buttons">
-          <button
-            type="button"
-            className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md font-semibold text-sm transition-colors shadow-sm"
-            onClick={handleCreate}
-          >
-            <Plus size={16} />
-            <span>Add Customer</span>
-          </button>
-        </div>
+        <button style={s.addBtn} onClick={handleCreate}>
+          <Plus size={15} /> Add Customer
+        </button>
       </div>
 
-      <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden mt-4">
-        
+      <div style={s.card}>
         {/* Toolbar */}
-        <div className="p-4 border-b border-slate-200 flex items-center justify-end gap-3 bg-white">
-          <div className="flex items-center gap-2 border border-slate-200 rounded-md px-3 py-1.5 w-80 text-sm">
-            <Search size={16} className="text-slate-400" />
-            <input type="text" placeholder="Search by name, email, phone or ID..." className="outline-none border-none w-full bg-transparent text-slate-700" />
+        <div style={s.toolbar}>
+          <div style={s.searchBox}>
+            <Search size={15} color="#94a3b8" />
+            <input
+              type="text"
+              placeholder="Search by name, email, phone or ID..."
+              style={s.searchInput}
+              value={searchQuery}
+              onChange={e => setSearchQuery(e.target.value)}
+            />
           </div>
-          
-          <div className="flex items-center gap-2 border border-slate-200 rounded-md px-3 py-1.5 cursor-pointer hover:bg-slate-50 text-sm font-medium text-slate-700">
-            All <ChevronDown size={14} className="text-slate-500 ml-1" />
+          <div style={s.filterBtn}>
+            All <ChevronDown size={14} color="#94a3b8" style={{ marginLeft: 4 }} />
           </div>
-
-          <div className="flex items-center gap-2 border border-slate-200 rounded-md px-3 py-1.5 cursor-pointer hover:bg-slate-50 text-sm font-medium text-slate-700">
-            <Filter size={14} className="text-slate-500" /> Filter
+          <div style={s.filterBtn}>
+            <Filter size={14} color="#64748b" /> Filter
           </div>
         </div>
 
         {/* Table */}
         <div style={{ overflowX: 'auto' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.875rem' }}>
-            <thead>
-              <tr style={{ borderBottom: '1px solid #e2e8f0', color: '#64748b', fontWeight: 600 }}>
-                <th style={{ padding: '1rem 1.5rem', fontWeight: 600, width: '15%' }}>ID</th>
-                <th style={{ padding: '1rem 1.5rem', fontWeight: 600, width: '25%' }}>Name</th>
-                <th style={{ padding: '1rem 1.5rem', fontWeight: 600, width: '25%' }}>Email</th>
-                <th style={{ padding: '1rem 1.5rem', fontWeight: 600, width: '20%' }}>Phone</th>
-                <th style={{ padding: '1rem 1.5rem', fontWeight: 600, width: '15%' }}>Actions</th>
+          <table style={s.table}>
+            <thead style={s.thead}>
+              <tr>
+                <th style={s.th}>ID</th>
+                <th style={s.th}>Name</th>
+                <th style={s.th}>Email</th>
+                <th style={s.th}>Phone</th>
+                <th style={s.th}>Actions</th>
               </tr>
             </thead>
             <tbody>
-              {customers.length === 0 ? (
+              {pageCustomers.length === 0 ? (
                 <tr>
-                  <td colSpan="5" style={{ padding: '1.5rem', textAlign: 'center', color: '#64748b' }}>No customers found.</td>
+                  <td colSpan="5" style={{ padding: '32px', textAlign: 'center', color: '#94a3b8' }}>
+                    {searchQuery ? 'No customers match your search.' : 'No customers found.'}
+                  </td>
                 </tr>
               ) : (
-                customers.map(cust => (
-                  <tr key={cust.id} style={{ borderBottom: '1px solid #f1f5f9' }} className="hover:bg-slate-50 transition-colors">
-                    <td style={{ padding: '1rem 1.5rem', color: '#475569', fontWeight: 600 }}>{cust.customer_id}</td>
-                    <td style={{ padding: '1rem 1.5rem' }}>
-                      <div className="flex items-center gap-3">
-                        <div className="w-7 h-7 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold text-xs">
-                          {getInitials(cust.username)}
+                pageCustomers.map((cust, idx) => {
+                  const globalIdx = startIdx + idx;
+                  const [bg, fg] = getAvatarColors(globalIdx);
+                  return (
+                    <tr key={cust.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                      <td style={s.tdId}>{cust.customer_id}</td>
+                      <td style={s.tdName}>
+                        <div style={s.nameCell}>
+                          <div style={{ ...s.nameAvatar, backgroundColor: bg, color: fg }}>
+                            {getInitials(cust.username)}
+                          </div>
+                          <span style={s.nameText}>{cust.username}</span>
                         </div>
-                        <span className="font-medium text-slate-700">{cust.username}</span>
-                      </div>
-                    </td>
-                    <td style={{ padding: '1rem 1.5rem' }}>
-                      <span className="text-blue-500 hover:underline cursor-pointer">{cust.email}</span>
-                    </td>
-                    <td style={{ padding: '1rem 1.5rem', color: '#475569', fontWeight: 500 }}>{cust.phone || 'N/A'}</td>
-                    <td style={{ padding: '1rem 1.5rem' }}>
-                      <div style={{ display: 'flex', gap: '0.75rem' }}>
-                        <button onClick={() => navigate(`/agent/customers/${cust.id}`)} className="text-blue-500 hover:text-blue-700 bg-blue-50 p-1.5 rounded" title="View">
-                          <Eye size={16} />
-                        </button>
-                        <button onClick={() => handleEdit(cust)} className="text-amber-500 hover:text-amber-600 bg-amber-50 p-1.5 rounded" title="Edit">
-                          <Edit2 size={16} />
-                        </button>
-                        <button onClick={() => handleDelete(cust.id)} className="text-red-500 hover:text-red-700 bg-red-50 p-1.5 rounded" title="Delete">
-                          <Trash2 size={16} />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))
+                      </td>
+                      <td style={s.tdEmail}>{cust.email}</td>
+                      <td style={s.tdPhone}>{cust.phone || 'N/A'}</td>
+                      <td style={s.tdActions}>
+                        <div style={s.actionBtns}>
+                          <button style={s.viewBtn} onClick={() => navigate(`/agent/customers/${cust.id}`)} title="View">
+                            <Eye size={16} />
+                          </button>
+                          <button style={s.editBtn} onClick={() => handleEdit(cust)} title="Edit">
+                            <Edit2 size={16} />
+                          </button>
+                          <button style={s.deleteBtn} onClick={() => handleDelete(cust.id)} title="Delete">
+                            <Trash2 size={16} />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })
               )}
             </tbody>
           </table>
         </div>
-        
-        {/* Footer Pagination */}
-        <div className="p-4 border-t border-slate-200 flex items-center justify-between text-sm text-slate-500">
-          <div>
-            Showing 1-5 of 28 customers
-          </div>
-          <div className="flex items-center gap-1">
-            <button className="w-8 h-8 flex items-center justify-center rounded border border-slate-200 hover:bg-slate-50 text-slate-400">
-              <ChevronLeft size={16} />
-            </button>
-            <button className="w-8 h-8 flex items-center justify-center rounded bg-blue-600 text-white font-medium border border-blue-600">
-              1
-            </button>
-            <button className="w-8 h-8 flex items-center justify-center rounded border border-slate-200 hover:bg-slate-50 text-slate-600 font-medium">
-              2
-            </button>
-            <button className="w-8 h-8 flex items-center justify-center rounded border border-slate-200 hover:bg-slate-50 text-slate-600 font-medium">
-              3
-            </button>
-            <button className="w-8 h-8 flex items-center justify-center rounded border border-slate-200 hover:bg-slate-50 text-slate-600 font-medium">
-              4
-            </button>
-            <button className="w-8 h-8 flex items-center justify-center rounded border border-slate-200 hover:bg-slate-50 text-slate-600 font-medium">
-              5
-            </button>
-            <button className="w-8 h-8 flex items-center justify-center rounded border border-slate-200 hover:bg-slate-50 text-slate-400">
-              <ChevronRight size={16} />
-            </button>
-          </div>
-        </div>
 
+        {/* Pagination Footer */}
+        <div style={s.footer}>
+          <span>
+            {totalCustomers === 0
+              ? 'No customers'
+              : `Showing ${startIdx + 1}–${endIdx} of ${totalCustomers} customer${totalCustomers !== 1 ? 's' : ''}`}
+          </span>
+          {totalPages > 1 && (
+            <div style={s.pagination}>
+              {/* Prev */}
+              <button
+                style={safePage === 1 ? s.pageBtnArrowDisabled : s.pageBtnArrow}
+                onClick={() => safePage > 1 && setCurrentPage(safePage - 1)}
+                disabled={safePage === 1}
+              >
+                <ChevronLeft size={15} />
+              </button>
+
+              {/* Page numbers */}
+              {getPageNumbers().map(n => (
+                <button
+                  key={n}
+                  style={n === safePage ? s.pageBtnActive : s.pageBtn}
+                  onClick={() => setCurrentPage(n)}
+                >
+                  {n}
+                </button>
+              ))}
+
+              {/* Next */}
+              <button
+                style={safePage === totalPages ? s.pageBtnArrowDisabled : s.pageBtnArrow}
+                onClick={() => safePage < totalPages && setCurrentPage(safePage + 1)}
+                disabled={safePage === totalPages}
+              >
+                <ChevronRight size={15} />
+              </button>
+            </div>
+          )}
+        </div>
       </div>
 
-      <CustomerModal 
+      <CustomerModal
         isOpen={modalOpen}
         onClose={() => setModalOpen(false)}
         onSave={handleSave}
